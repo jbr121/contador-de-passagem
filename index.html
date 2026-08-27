@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora de Recarga | Viação Praiana</title>
+    <link rel="icon" href="assets/brasao.png" />
+    <meta name="theme-color" content="#111111" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="brand">
+          <img class="brasao" src="assets/brasao.png" alt="Brasão Viação Praiana" />
+          <img
+            class="logomarca"
+            src="assets/logomarca-praiana.png"
+            alt="Viação Praiana"
+          />
+        </div>
+        <div class="header-copy">
+          <h1>Calculadora de recarga</h1>
+          <p>Passe Fácil — selecione a rota e a quantidade</p>
+        </div>
+        <button class="icon-btn" id="btn-settings" title="Editar tarifas" type="button" aria-label="Editar tarifas">
+          ⚙
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel panel-pad">
+        <p class="section-label">Posto de atendimento</p>
+        <div class="postos" id="postos"></div>
+
+        <div class="search">
+          <input
+            id="busca"
+            type="search"
+            placeholder="Buscar destino, linha ou cidade... ex: Camboriú"
+            autocomplete="off"
+          />
+        </div>
+
+        <p class="section-label">Rotas</p>
+        <div class="routes" id="rotas"></div>
+      </section>
+
+      <aside class="panel panel-pad calc">
+        <div class="calc-head">
+          <div>
+            <p class="section-label">Recarga do cartão</p>
+            <p class="selected-route" id="rota-selecionada">Selecione uma rota</p>
+          </div>
+          <span class="badge" id="codigo-linha">—</span>
+        </div>
+
+        <p class="section-label" style="margin-top: 16px">Tipo de cartão</p>
+        <div class="types" id="tipos">
+          <button type="button" data-tipo="integral" class="active">Integral / Cidadão</button>
+          <button type="button" data-tipo="estudante">Estudante (50%)</button>
+        </div>
+
+        <p class="section-label">Quantidade de passagens</p>
+        <div class="qty-row">
+          <button type="button" id="menos">−</button>
+          <input id="qtd" type="number" min="1" max="999" value="5" />
+          <button type="button" id="mais">+</button>
+        </div>
+        <div class="qty-chips" id="atalhos">
+          <button type="button" data-qtd="1">1</button>
+          <button type="button" data-qtd="2">2</button>
+          <button type="button" data-qtd="5" class="active">5</button>
+          <button type="button" data-qtd="10">10</button>
+          <button type="button" data-qtd="20">20</button>
+          <button type="button" data-qtd="44">44</button>
+        </div>
+        <label class="check">
+          <input id="ida-volta" type="checkbox" />
+          Ida e volta (multiplica por 2)
+        </label>
+
+        <div class="totals">
+          <small>Valor unitário</small>
+          <p class="unit" id="unitario">R$ 0,00</p>
+          <small>Valor para recarregar</small>
+          <p class="grand" id="total">R$ 0,00</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="add" type="button">Adicionar à recarga</button>
+          <button class="btn-ghost" id="copiar" type="button">Copiar valor</button>
+        </div>
+
+        <div class="cart" id="carrinho"></div>
+        <div class="cart-total" id="carrinho-total" hidden>
+          <span>Total da recarga</span>
+          <strong id="carrinho-valor">R$ 0,00</strong>
+        </div>
+        <button class="btn-ghost" id="limpar" type="button" hidden style="margin-top: 10px; width: 100%">
+          Limpar recarga
+        </button>
+      </aside>
+    </main>
+
+    <footer>
+      Tarifas vigentes a partir de <strong id="vigencia">—</strong>.
+      Fonte: Informativo Oficial de Tarifas da Viação Praiana, homologado pela SIE/SC.
+      Use o botão de engrenagem para ajustar valores neste computador após um reajuste.
+    </footer>
+
+    <div class="modal" id="modal" role="dialog" aria-labelledby="modal-title">
+      <div class="modal-card">
+        <div class="calc-head">
+          <h2 id="modal-title">Editar tarifas deste computador</h2>
+          <button class="icon-btn" id="fechar-modal" type="button">✕</button>
+        </div>
+        <p style="color: var(--muted); margin-top: 8px">
+          Os valores oficiais vêm do informativo vigente. Alterações feitas aqui ficam salvas
+          só neste navegador, para o guichê não depender de republicar o sistema.
+        </p>
+        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap">
+          <button class="btn-primary" id="salvar-tarifas" type="button">Salvar alterações</button>
+          <button class="btn-ghost" id="restaurar-tarifas" type="button">Restaurar oficiais</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Linha</th>
+              <th>Origem</th>
+              <th>Destino</th>
+              <th>Tarifa (R$)</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-tarifas"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/tarifas.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
