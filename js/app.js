@@ -164,8 +164,7 @@
     return qtd === 1 ? "passagem" : "passagens";
   }
 
-  function calcularAtual() {
-    const trecho = trechoAtual();
+  function calcularTrecho(trecho) {
     const valor = Math.max(0, roundMoney(state.valor));
     if (!trecho) {
       return { unitario: 0, custo: 0, qtd: 0, usado: 0, sobra: valor, falta: 0 };
@@ -183,6 +182,10 @@
     const sobra = roundMoney(valor - usado);
     const falta = roundMoney(custo - sobra);
     return { unitario, custo, qtd, usado, sobra, falta };
+  }
+
+  function calcularAtual() {
+    return calcularTrecho(trechoAtual());
   }
 
   function textoResultado(calc) {
@@ -230,10 +233,19 @@
           state.posto === "todas" || state.busca.trim()
             ? `${t.origem} → ${t.destino}`
             : t.destino;
+        const calc = calcularTrecho(t);
+        const qtdLabel = Number.isFinite(calc.qtd)
+          ? `${calc.qtd} ${rotuloUnidade(calc.qtd)}`
+          : "Tarifa zero";
+        const extra = Number.isFinite(calc.qtd)
+          ? calc.sobra > 0
+            ? `sobra ${money(calc.sobra)}`
+            : "fecha certinho"
+          : "";
         return `<button type="button" class="route ${selected}" data-id="${t.id}">
           <div class="route-title">${titulo}</div>
-          <div class="route-meta">${t.linha} · ${t.codigo}</div>
-          <div class="route-fare">${money(tarifaOficial(t))} <span data-fav="${t.id}">${star}</span></div>
+          <div class="route-meta">${t.linha} · ${t.codigo} · ${money(tarifaOficial(t))}</div>
+          <div class="route-passagens">${qtdLabel}<small>${extra} <span data-fav="${t.id}">${star}</span></small></div>
         </button>`;
       })
       .join("");
@@ -287,6 +299,10 @@
   }
 
   function renderAll() {
+    const visiveis = trechosVisiveis();
+    if (!visiveis.some((t) => t.id === state.trechoId)) {
+      state.trechoId = visiveis[0] ? visiveis[0].id : null;
+    }
     renderPostos();
     renderRotas();
     renderCalc();
@@ -340,12 +356,14 @@
       b.classList.toggle("active", b === btn)
     );
     renderCalc();
+    renderRotas();
   });
 
   els.valor.addEventListener("input", (e) => {
     state.valor = parseMoney(e.target.value);
     renderCalc();
     renderAtalhos();
+    renderRotas();
   });
 
   els.valor.addEventListener("blur", () => {
@@ -353,6 +371,7 @@
     els.valor.value = formatInput(state.valor);
     renderCalc();
     renderAtalhos();
+    renderRotas();
   });
 
   els.atalhos.addEventListener("click", (e) => {
@@ -362,11 +381,13 @@
     els.valor.value = formatInput(state.valor);
     renderCalc();
     renderAtalhos();
+    renderRotas();
   });
 
   els.idaVolta.addEventListener("change", (e) => {
     state.idaVolta = e.target.checked;
     renderCalc();
+    renderRotas();
   });
 
   document.getElementById("copiar").addEventListener("click", async () => {

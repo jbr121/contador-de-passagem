@@ -120,6 +120,44 @@ select {
   align-items: start;
 }
 
+.value-bar {
+  background: var(--ink);
+  color: #fff;
+  border-bottom: 8px solid var(--yellow);
+}
+
+.value-bar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 18px 24px 20px;
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.value-bar .section-label {
+  color: var(--yellow-soft);
+}
+
+.value-bar .check {
+  color: #fff;
+}
+
+.value-bar .types button,
+.value-bar .qty-chips button {
+  background: #1c1c1c;
+  color: #fff;
+  border-color: #3a3a3a;
+}
+
+.value-bar .types button.active,
+.value-bar .qty-chips button.active {
+  background: var(--yellow);
+  color: var(--ink);
+  border-color: var(--yellow);
+}
+
 .panel {
   background: var(--card);
   border: 1px solid var(--line);
@@ -248,6 +286,26 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
+.route-passagens {
+  margin-top: 10px;
+  font-size: 1.55rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.route-passagens small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.route.selected .route-passagens small {
+  color: var(--yellow-soft);
+}
+
 .empty {
   color: var(--muted);
   padding: 28px 8px;
@@ -255,7 +313,7 @@ select {
 
 .calc {
   position: sticky;
-  top: 108px;
+  top: 24px;
 }
 
 .calc-head {
@@ -539,7 +597,8 @@ footer {
 
 @media (max-width: 920px) {
   .layout,
-  .header-inner {
+  .header-inner,
+  .value-bar-inner {
     grid-template-columns: 1fr;
   }
 

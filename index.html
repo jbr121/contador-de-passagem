@@ -6,7 +6,8 @@
     <title>Calculadora de Recarga | Viação Praiana</title>
     <link rel="icon" href="assets/brasao.png" />
     <meta name="theme-color" content="#111111" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <link rel="stylesheet" href="css/styles.css?v=3" />
   </head>
   <body>
     <header class="app-header">
@@ -29,6 +30,37 @@
       </div>
     </header>
 
+    <section class="value-bar">
+      <div class="value-bar-inner">
+        <div>
+          <p class="section-label">Cliente vai recarregar</p>
+          <div class="money-row">
+            <span>R$</span>
+            <input id="valor" type="text" inputmode="decimal" value="50,00" autocomplete="off" />
+          </div>
+          <div class="qty-chips" id="atalhos">
+            <button type="button" data-valor="10">10</button>
+            <button type="button" data-valor="20">20</button>
+            <button type="button" data-valor="30">30</button>
+            <button type="button" data-valor="50" class="active">50</button>
+            <button type="button" data-valor="100">100</button>
+            <button type="button" data-valor="200">200</button>
+          </div>
+        </div>
+        <div>
+          <p class="section-label">Tipo de cartão</p>
+          <div class="types" id="tipos">
+            <button type="button" data-tipo="integral" class="active">Integral / Cidadão</button>
+            <button type="button" data-tipo="estudante">Estudante (50%)</button>
+          </div>
+          <label class="check">
+            <input id="ida-volta" type="checkbox" />
+            Contar em ida e volta (2 passagens)
+          </label>
+        </div>
+      </div>
+    </section>
+
     <main class="layout">
       <section class="panel panel-pad">
         <p class="section-label">Posto de atendimento</p>
@@ -43,49 +75,25 @@
           />
         </div>
 
-        <p class="section-label">Rotas</p>
+        <p class="section-label">Quantas passagens cabem nesse valor</p>
         <div class="routes" id="rotas"></div>
       </section>
 
       <aside class="panel panel-pad calc">
         <div class="calc-head">
           <div>
-            <p class="section-label">Recarga do cartão</p>
+            <p class="section-label">Detalhe da rota</p>
             <p class="selected-route" id="rota-selecionada">Selecione uma rota</p>
           </div>
           <span class="badge" id="codigo-linha">—</span>
         </div>
 
-        <p class="section-label" style="margin-top: 16px">Tipo de cartão</p>
-        <div class="types" id="tipos">
-          <button type="button" data-tipo="integral" class="active">Integral / Cidadão</button>
-          <button type="button" data-tipo="estudante">Estudante (50%)</button>
-        </div>
-
-        <p class="section-label">Valor da recarga</p>
-        <div class="money-row">
-          <span>R$</span>
-          <input id="valor" type="text" inputmode="decimal" value="50,00" autocomplete="off" />
-        </div>
-        <div class="qty-chips" id="atalhos">
-          <button type="button" data-valor="10">10</button>
-          <button type="button" data-valor="20">20</button>
-          <button type="button" data-valor="30">30</button>
-          <button type="button" data-valor="50" class="active">50</button>
-          <button type="button" data-valor="100">100</button>
-          <button type="button" data-valor="200">200</button>
-        </div>
-        <label class="check">
-          <input id="ida-volta" type="checkbox" />
-          Contar em ida e volta (2 passagens)
-        </label>
-
-        <div class="totals">
+        <div class="totals" style="margin-top: 16px">
           <small>Tarifa unitária</small>
           <p class="unit" id="unitario">R$ 0,00</p>
           <small>Quantas passagens dão</small>
           <p class="grand" id="total">0</p>
-          <p class="hint" id="detalhe">Selecione uma rota e informe o valor</p>
+          <p class="hint" id="detalhe">Informe o valor acima e clique numa rota</p>
           <p class="hint hint-next" id="proximo"></p>
         </div>
 
@@ -131,7 +139,7 @@
 
     <div class="toast" id="toast"></div>
 
-    <script src="js/tarifas.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/tarifas.js?v=3"></script>
+    <script src="js/app.js?v=3"></script>
   </body>
 </html>
