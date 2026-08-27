@@ -8,9 +8,8 @@
     busca: "",
     trechoId: null,
     tipo: "integral",
-    quantidade: 5,
+    valor: 50,
     idaVolta: false,
-    itens: [],
   };
 
   const els = {
@@ -20,15 +19,13 @@
     rotaSelecionada: document.getElementById("rota-selecionada"),
     codigo: document.getElementById("codigo-linha"),
     tipos: document.getElementById("tipos"),
-    qtd: document.getElementById("qtd"),
+    valor: document.getElementById("valor"),
     atalhos: document.getElementById("atalhos"),
     idaVolta: document.getElementById("ida-volta"),
     unitario: document.getElementById("unitario"),
     total: document.getElementById("total"),
-    carrinho: document.getElementById("carrinho"),
-    carrinhoTotal: document.getElementById("carrinho-total"),
-    carrinhoValor: document.getElementById("carrinho-valor"),
-    limpar: document.getElementById("limpar"),
+    detalhe: document.getElementById("detalhe"),
+    proximo: document.getElementById("proximo"),
     vigencia: document.getElementById("vigencia"),
     modal: document.getElementById("modal"),
     tabela: document.getElementById("tabela-tarifas"),
@@ -44,6 +41,23 @@
 
   function roundMoney(value) {
     return Math.round(value * 100 + 1e-8) / 100;
+  }
+
+  function parseMoney(raw) {
+    const s = String(raw).trim().replace(/\s/g, "");
+    if (!s) return 0;
+    if (s.includes(",") && s.includes(".")) {
+      return Number(s.replace(/\./g, "").replace(",", ".")) || 0;
+    }
+    if (s.includes(",")) return Number(s.replace(",", ".")) || 0;
+    return Number(s) || 0;
+  }
+
+  function formatInput(value) {
+    return value.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   }
 
   function overrides() {
@@ -75,9 +89,8 @@
     return base;
   }
 
-  function passagens() {
-    const qtd = Math.max(1, Number(state.quantidade) || 1);
-    return state.idaVolta ? qtd * 2 : qtd;
+  function custoPorViagem(unitario) {
+    return state.idaVolta ? roundMoney(unitario * 2) : unitario;
   }
 
   function norm(text) {
@@ -144,12 +157,43 @@
     return PRAIANA.trechos.find((t) => t.id === state.trechoId) || null;
   }
 
+  function rotuloUnidade(qtd) {
+    if (state.idaVolta) {
+      return qtd === 1 ? "ida e volta" : "idas e voltas";
+    }
+    return qtd === 1 ? "passagem" : "passagens";
+  }
+
   function calcularAtual() {
     const trecho = trechoAtual();
-    if (!trecho) return { unitario: 0, total: 0, qtd: 0 };
+    const valor = Math.max(0, roundMoney(state.valor));
+    if (!trecho) {
+      return { unitario: 0, custo: 0, qtd: 0, usado: 0, sobra: valor, falta: 0 };
+    }
+
     const unitario = tarifaUnitaria(trecho);
-    const qtd = passagens();
-    return { unitario, qtd, total: roundMoney(unitario * qtd) };
+    const custo = custoPorViagem(unitario);
+
+    if (custo <= 0) {
+      return { unitario, custo, qtd: Infinity, usado: 0, sobra: valor, falta: 0 };
+    }
+
+    const qtd = Math.floor((valor + 1e-8) / custo);
+    const usado = roundMoney(qtd * custo);
+    const sobra = roundMoney(valor - usado);
+    const falta = roundMoney(custo - sobra);
+    return { unitario, custo, qtd, usado, sobra, falta };
+  }
+
+  function textoResultado(calc) {
+    if (!Number.isFinite(calc.qtd)) {
+      return "Tarifa zero — não desconta passagem";
+    }
+    const unidade = rotuloUnidade(calc.qtd);
+    let texto = `${calc.qtd} ${unidade}`;
+    if (calc.qtd > 0) texto += ` · usa ${money(calc.usado)}`;
+    if (calc.sobra > 0) texto += ` · sobra ${money(calc.sobra)}`;
+    return texto;
   }
 
   function toast(msg) {
@@ -197,56 +241,48 @@
 
   function renderCalc() {
     const trecho = trechoAtual();
+    const calc = calcularAtual();
+
     if (!trecho) {
       els.rotaSelecionada.textContent = "Selecione uma rota";
       els.codigo.textContent = "—";
       els.unitario.textContent = money(0);
-      els.total.textContent = money(0);
+      els.total.textContent = "0";
+      els.detalhe.textContent = "Selecione uma rota e informe o valor";
+      els.proximo.textContent = "";
       return;
     }
 
-    const calc = calcularAtual();
     els.rotaSelecionada.textContent = `${trecho.origem} → ${trecho.destino}`;
     els.codigo.textContent = trecho.codigo;
-    els.unitario.textContent = `${money(calc.unitario)} · ${calc.qtd} ${
-      calc.qtd === 1 ? "passagem" : "passagens"
-    }`;
-    els.total.textContent = money(calc.total);
-  }
+    els.unitario.textContent = state.idaVolta
+      ? `${money(calc.unitario)} · ida e volta ${money(calc.custo)}`
+      : money(calc.unitario);
 
-  function renderCarrinho() {
-    if (!state.itens.length) {
-      els.carrinho.innerHTML = "";
-      els.carrinhoTotal.hidden = true;
-      els.limpar.hidden = true;
+    if (!Number.isFinite(calc.qtd)) {
+      els.total.textContent = "∞";
+      els.detalhe.textContent = "Esta linha é tarifa zero.";
+      els.proximo.textContent = "";
       return;
     }
 
-    els.carrinho.innerHTML = state.itens
-      .map((item, index) => {
-        const t = PRAIANA.trechos.find((x) => x.id === item.trechoId);
-        return `<div class="cart-item">
-          <div>
-            <strong>${t.origem} → ${t.destino}</strong>
-            <div class="route-meta">${item.qtd} ${
-          item.tipo === "estudante" ? "estudante" : "integral"
-        }${item.idaVolta ? " · ida e volta" : ""}</div>
-          </div>
-          <strong>${money(item.subtotal)}</strong>
-          <button type="button" data-remove="${index}" aria-label="Remover">✕</button>
-        </div>`;
-      })
-      .join("");
+    els.total.textContent = String(calc.qtd);
+    els.detalhe.textContent = textoResultado(calc);
 
-    const soma = roundMoney(state.itens.reduce((acc, i) => acc + i.subtotal, 0));
-    els.carrinhoValor.textContent = money(soma);
-    els.carrinhoTotal.hidden = false;
-    els.limpar.hidden = false;
+    if (calc.qtd === 0) {
+      els.proximo.textContent = `Faltam ${money(calc.falta)} para 1 ${rotuloUnidade(1)}.`;
+    } else if (calc.sobra > 0 && calc.falta > 0) {
+      els.proximo.textContent = `Faltam ${money(calc.falta)} para ${calc.qtd + 1} ${rotuloUnidade(
+        calc.qtd + 1
+      )}.`;
+    } else {
+      els.proximo.textContent = "Valor fecha exatamente nesta quantidade.";
+    }
   }
 
   function renderAtalhos() {
     [...els.atalhos.querySelectorAll("button")].forEach((btn) => {
-      btn.classList.toggle("active", Number(btn.dataset.qtd) === Number(state.quantidade));
+      btn.classList.toggle("active", Number(btn.dataset.valor) === Number(state.valor));
     });
   }
 
@@ -254,9 +290,8 @@
     renderPostos();
     renderRotas();
     renderCalc();
-    renderCarrinho();
     renderAtalhos();
-    els.qtd.value = state.quantidade;
+    els.valor.value = formatInput(state.valor);
     els.idaVolta.checked = state.idaVolta;
     els.vigencia.textContent = PRAIANA.vigencia;
   }
@@ -307,31 +342,24 @@
     renderCalc();
   });
 
-  document.getElementById("menos").addEventListener("click", () => {
-    state.quantidade = Math.max(1, Number(state.quantidade) - 1);
+  els.valor.addEventListener("input", (e) => {
+    state.valor = parseMoney(e.target.value);
     renderCalc();
     renderAtalhos();
-    els.qtd.value = state.quantidade;
   });
 
-  document.getElementById("mais").addEventListener("click", () => {
-    state.quantidade = Math.min(999, Number(state.quantidade) + 1);
-    renderCalc();
-    renderAtalhos();
-    els.qtd.value = state.quantidade;
-  });
-
-  els.qtd.addEventListener("input", (e) => {
-    state.quantidade = Math.max(1, Math.min(999, Number(e.target.value) || 1));
+  els.valor.addEventListener("blur", () => {
+    state.valor = roundMoney(Math.max(0, parseMoney(els.valor.value)));
+    els.valor.value = formatInput(state.valor);
     renderCalc();
     renderAtalhos();
   });
 
   els.atalhos.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-qtd]");
+    const btn = e.target.closest("[data-valor]");
     if (!btn) return;
-    state.quantidade = Number(btn.dataset.qtd);
-    els.qtd.value = state.quantidade;
+    state.valor = Number(btn.dataset.valor);
+    els.valor.value = formatInput(state.valor);
     renderCalc();
     renderAtalhos();
   });
@@ -341,46 +369,20 @@
     renderCalc();
   });
 
-  document.getElementById("add").addEventListener("click", () => {
+  document.getElementById("copiar").addEventListener("click", async () => {
     const trecho = trechoAtual();
     if (!trecho) {
       toast("Selecione uma rota primeiro");
       return;
     }
     const calc = calcularAtual();
-    state.itens.push({
-      trechoId: trecho.id,
-      qtd: calc.qtd,
-      tipo: state.tipo,
-      idaVolta: state.idaVolta,
-      subtotal: calc.total,
-    });
-    renderCarrinho();
-    toast("Trecho adicionado à recarga");
-  });
-
-  document.getElementById("copiar").addEventListener("click", async () => {
-    const somaItens = state.itens.reduce((acc, i) => acc + i.subtotal, 0);
-    const valor = state.itens.length ? roundMoney(somaItens) : calcularAtual().total;
-    const texto = money(valor);
+    const texto = `${trecho.origem} → ${trecho.destino}: ${money(state.valor)} = ${textoResultado(calc)}`;
     try {
       await navigator.clipboard.writeText(texto);
-      toast(`Copiado: ${texto}`);
+      toast("Resultado copiado");
     } catch {
       toast(texto);
     }
-  });
-
-  els.carrinho.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-remove]");
-    if (!btn) return;
-    state.itens.splice(Number(btn.dataset.remove), 1);
-    renderCarrinho();
-  });
-
-  els.limpar.addEventListener("click", () => {
-    state.itens = [];
-    renderCarrinho();
   });
 
   function abrirModal() {

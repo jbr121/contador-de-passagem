@@ -21,7 +21,7 @@
         </div>
         <div class="header-copy">
           <h1>Calculadora de recarga</h1>
-          <p>Passe Fácil — selecione a rota e a quantidade</p>
+          <p>Passe Fácil — informe o valor e veja quantas passagens cabem</p>
         </div>
         <button class="icon-btn" id="btn-settings" title="Editar tarifas" type="button" aria-label="Editar tarifas">
           ⚙
@@ -62,45 +62,36 @@
           <button type="button" data-tipo="estudante">Estudante (50%)</button>
         </div>
 
-        <p class="section-label">Quantidade de passagens</p>
-        <div class="qty-row">
-          <button type="button" id="menos">−</button>
-          <input id="qtd" type="number" min="1" max="999" value="5" />
-          <button type="button" id="mais">+</button>
+        <p class="section-label">Valor da recarga</p>
+        <div class="money-row">
+          <span>R$</span>
+          <input id="valor" type="text" inputmode="decimal" value="50,00" autocomplete="off" />
         </div>
         <div class="qty-chips" id="atalhos">
-          <button type="button" data-qtd="1">1</button>
-          <button type="button" data-qtd="2">2</button>
-          <button type="button" data-qtd="5" class="active">5</button>
-          <button type="button" data-qtd="10">10</button>
-          <button type="button" data-qtd="20">20</button>
-          <button type="button" data-qtd="44">44</button>
+          <button type="button" data-valor="10">10</button>
+          <button type="button" data-valor="20">20</button>
+          <button type="button" data-valor="30">30</button>
+          <button type="button" data-valor="50" class="active">50</button>
+          <button type="button" data-valor="100">100</button>
+          <button type="button" data-valor="200">200</button>
         </div>
         <label class="check">
           <input id="ida-volta" type="checkbox" />
-          Ida e volta (multiplica por 2)
+          Contar em ida e volta (2 passagens)
         </label>
 
         <div class="totals">
-          <small>Valor unitário</small>
+          <small>Tarifa unitária</small>
           <p class="unit" id="unitario">R$ 0,00</p>
-          <small>Valor para recarregar</small>
-          <p class="grand" id="total">R$ 0,00</p>
+          <small>Quantas passagens dão</small>
+          <p class="grand" id="total">0</p>
+          <p class="hint" id="detalhe">Selecione uma rota e informe o valor</p>
+          <p class="hint hint-next" id="proximo"></p>
         </div>
 
         <div class="actions">
-          <button class="btn-primary" id="add" type="button">Adicionar à recarga</button>
-          <button class="btn-ghost" id="copiar" type="button">Copiar valor</button>
+          <button class="btn-primary" id="copiar" type="button">Copiar resultado</button>
         </div>
-
-        <div class="cart" id="carrinho"></div>
-        <div class="cart-total" id="carrinho-total" hidden>
-          <span>Total da recarga</span>
-          <strong id="carrinho-valor">R$ 0,00</strong>
-        </div>
-        <button class="btn-ghost" id="limpar" type="button" hidden style="margin-top: 10px; width: 100%">
-          Limpar recarga
-        </button>
       </aside>
     </main>
 
